@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const timeOffAllocationSchema = new Schema({
-  employeeId: {
+  userId: {
     type: Schema.Types.ObjectId,
-    ref: 'Employee',
+    ref: 'User',
     required: true
   },
   timeOffTypeId: {
@@ -42,6 +42,6 @@ const timeOffAllocationSchema = new Schema({
   timestamps: true
 });
 
-timeOffAllocationSchema.index({ employeeId: 1, timeOffTypeId: 1, year: 1 }, { unique: true });
+timeOffAllocationSchema.index({ userId: 1, timeOffTypeId: 1, year: 1 }, { unique: true });
 
 module.exports = mongoose.model('TimeOffAllocation', timeOffAllocationSchema);

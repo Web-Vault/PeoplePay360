@@ -17,7 +17,7 @@ const departmentSchema = new Schema({
   },
   managerId: {
     type: Schema.Types.ObjectId,
-    ref: 'Employee'
+    ref: 'User'
   },
   isActive: {
     type: Boolean,

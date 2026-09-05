@@ -7,9 +7,9 @@ const payrollAuditSchema = new Schema({
     ref: 'Payrun',
     index: true
   },
-  employeeId: {
+  userId: {
     type: Schema.Types.ObjectId,
-    ref: 'Employee',
+    ref: 'User',
     index: true
   },
   payslipId: {

@@ -9,11 +9,11 @@ const mongoose = require('mongoose');
 const { connectDB } = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const employeeRoutes = require('./routes/employeeRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 require('./models/User');
 require('./models/Department');
-require('./models/Employee');
 require('./models/Contract');
 require('./models/WorkingSchedule');
 require('./models/Attendance');
@@ -38,13 +38,13 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 5 * 60 * 1000,
   max: process.env.NODE_ENV === 'production' ? 5 : 200,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
-    message: 'Too many login attempts. Please try again after 15 minutes.'
+    message: 'Too many login attempts. Please try again after 5 minutes.'
   }
 });
 
@@ -87,6 +87,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/employees', employeeRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

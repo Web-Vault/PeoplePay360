@@ -22,6 +22,7 @@ const getAllUsers = async (filters = {}) => {
   const skip = (page - 1) * limit;
 
   const query = {};
+  if (filters.scope === 'management') query.role = { $ne: 'employee' };
   if (filters.role) query.role = filters.role;
   if (filters.isActive !== undefined) query.isActive = filters.isActive === 'true';
 
@@ -30,13 +31,13 @@ const getAllUsers = async (filters = {}) => {
     query.$or = [
       { name: { $regex: s, $options: 'i' } },
       { email: { $regex: s, $options: 'i' } },
-      { phone: { $regex: s, $options: 'i' } }
+      { phone: { $regex: s, $options: 'i' } },
+      { employeeCode: { $regex: s, $options: 'i' } }
     ];
   }
 
   const [users, total] = await Promise.all([
     User.find(query)
-      .populate('employeeId', 'firstName lastName employeeCode departmentId')
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -60,7 +61,6 @@ const getAllUsers = async (filters = {}) => {
 
 const getUserById = async (userId) => {
   const user = await User.findById(userId)
-    .populate('employeeId', 'firstName lastName employeeCode departmentId email phone')
     .populate('createdBy', 'name email')
     .lean();
 
@@ -88,7 +88,6 @@ const createUser = async (data, createdById) => {
     email: data.email.toLowerCase().trim(),
     passwordHash,
     role: data.role,
-    employeeId: data.employeeId || undefined,
     isActive: data.isActive !== undefined ? data.isActive : true,
     phone: data.phone || undefined,
     createdBy: createdById || undefined,
@@ -97,7 +96,6 @@ const createUser = async (data, createdById) => {
 
   await user.save();
   const populated = await User.findById(user._id)
-    .populate('employeeId', 'firstName lastName employeeCode departmentId')
     .populate('createdBy', 'name email')
     .lean();
   return sanitizeUser(populated);
@@ -125,13 +123,9 @@ const updateUser = async (userId, data) => {
   if (data.role !== undefined) user.role = data.role;
   if (data.isActive !== undefined) user.isActive = data.isActive;
   if (data.phone !== undefined) user.phone = data.phone || undefined;
-  if (data.employeeId !== undefined) {
-    user.employeeId = data.employeeId || null;
-  }
 
   await user.save();
   const refreshed = await User.findById(userId)
-    .populate('employeeId', 'firstName lastName employeeCode departmentId')
     .populate('createdBy', 'name email')
     .lean();
   return sanitizeUser(refreshed);

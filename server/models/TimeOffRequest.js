@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const timeOffRequestSchema = new Schema({
-  employeeId: {
+  userId: {
     type: Schema.Types.ObjectId,
-    ref: 'Employee',
+    ref: 'User',
     required: true
   },
   timeOffTypeId: {
@@ -53,6 +53,6 @@ const timeOffRequestSchema = new Schema({
   timestamps: true
 });
 
-timeOffRequestSchema.index({ employeeId: 1, startDate: 1 });
+timeOffRequestSchema.index({ userId: 1, startDate: 1 });
 
 module.exports = mongoose.model('TimeOffRequest', timeOffRequestSchema);

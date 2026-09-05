@@ -6,6 +6,10 @@ import Unauthorized from '../pages/Unauthorized'
 import PlaceholderPage from '../pages/PlaceholderPage'
 import UserManagement from '../pages/admin/UserManagement'
 import MyProfile from '../pages/MyProfile'
+import Dashboard from '../pages/Dashboard'
+import EmployeeList from '../pages/employees/EmployeeList'
+import EmployeeDetail from '../pages/employees/EmployeeDetail'
+import EmployeeForm from '../pages/employees/EmployeeForm'
 import { ROLES } from '../utils/constants'
 
 const ALL_ROLES = [ROLES.ADMIN, ROLES.HR, ROLES.PAYROLL_USER, ROLES.PAYROLL_MANAGER, ROLES.EMPLOYEE]
@@ -22,10 +26,13 @@ export default function AppRoutes() {
 
       <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
         <Route element={<AppLayout />}>
-          <Route path="/dashboard" element={<PlaceholderPage title="Dashboard" />} />
+          <Route path="/dashboard" element={<Dashboard />} />
 
           <Route element={<ProtectedRoute allowedRoles={MANAGER_ROLES} />}>
-            <Route path="/employees" element={<PlaceholderPage title="Employees" />} />
+            <Route path="/employees" element={<EmployeeList />} />
+            <Route path="/employees/new" element={<EmployeeForm />} />
+            <Route path="/employees/:id" element={<EmployeeDetail />} />
+            <Route path="/employees/:id/edit" element={<EmployeeForm />} />
             <Route path="/contracts" element={<PlaceholderPage title="Contracts" />} />
             <Route path="/attendance" element={<PlaceholderPage title="Attendance" />} />
             <Route path="/time-off" element={<PlaceholderPage title="Time Off" />} />

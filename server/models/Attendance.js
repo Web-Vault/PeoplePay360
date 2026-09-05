@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const attendanceSchema = new Schema({
-  employeeId: {
+  userId: {
     type: Schema.Types.ObjectId,
-    ref: 'Employee',
+    ref: 'User',
     required: true
   },
   date: {
@@ -40,6 +40,6 @@ const attendanceSchema = new Schema({
   timestamps: true
 });
 
-attendanceSchema.index({ employeeId: 1, date: 1 }, { unique: true });
+attendanceSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);

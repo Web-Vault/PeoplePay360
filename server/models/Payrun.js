@@ -18,9 +18,9 @@ const payrunSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'SalaryStructure'
   },
-  employeeIds: [{
+  userIds: [{
     type: Schema.Types.ObjectId,
-    ref: 'Employee'
+    ref: 'User'
   }],
   status: {
     type: String,

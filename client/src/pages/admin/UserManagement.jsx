@@ -37,18 +37,16 @@ const ROLE_OPTIONS = [
   { value: ROLES.ADMIN, label: roleLabels[ROLES.ADMIN] },
   { value: ROLES.HR, label: roleLabels[ROLES.HR] },
   { value: ROLES.PAYROLL_USER, label: roleLabels[ROLES.PAYROLL_USER] },
-  { value: ROLES.PAYROLL_MANAGER, label: roleLabels[ROLES.PAYROLL_MANAGER] },
-  { value: ROLES.EMPLOYEE, label: roleLabels[ROLES.EMPLOYEE] }
+  { value: ROLES.PAYROLL_MANAGER, label: roleLabels[ROLES.PAYROLL_MANAGER] }
 ]
 
 const emptyForm = {
   name: '',
   email: '',
   password: '',
-  role: ROLES.EMPLOYEE,
+  role: ROLES.HR,
   isActive: true,
   phone: '',
-  employeeId: ''
 }
 
 function Modal({ open, title, onClose, children, size = 'md' }) {
@@ -146,7 +144,7 @@ export default function UserManagement() {
   const fetchUsers = useCallback(async () => {
     setLoading(true)
     try {
-      const params = { page: pagination.page, limit: pagination.limit }
+      const params = { page: pagination.page, limit: pagination.limit, scope: 'management' }
       if (search) params.search = search
       if (roleFilter) params.role = roleFilter
       if (activeFilter) params.isActive = activeFilter
@@ -179,8 +177,7 @@ export default function UserManagement() {
       email: u.email || '',
       role: u.role || ROLES.EMPLOYEE,
       isActive: u.isActive !== false,
-      phone: u.phone || '',
-      employeeId: u.employeeId?.$oid || u.employeeId?._id || ''
+      phone: u.phone || ''
     })
     setFormErrors({})
     setEditOpen(true)
@@ -212,8 +209,7 @@ export default function UserManagement() {
         password: form.password,
         role: form.role,
         isActive: form.isActive,
-        phone: form.phone || undefined,
-        employeeId: form.employeeId || undefined
+        phone: form.phone || undefined
       }
       await createUser(payload)
       showToast('success', 'User created successfully')
@@ -246,8 +242,7 @@ export default function UserManagement() {
         email: form.email.trim().toLowerCase(),
         role: form.role,
         isActive: form.isActive,
-        phone: form.phone || undefined,
-        employeeId: form.employeeId || undefined
+        phone: form.phone || undefined
       }
       await updateUser(targetUser.id || targetUser._id, payload)
       showToast('success', 'User updated successfully')

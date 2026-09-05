@@ -7,9 +7,9 @@ const payslipSchema = new Schema({
     required: true,
     unique: true
   },
-  employeeId: {
+  userId: {
     type: Schema.Types.ObjectId,
-    ref: 'Employee',
+    ref: 'User',
     required: true
   },
   payrunId: {
@@ -106,6 +106,6 @@ const payslipSchema = new Schema({
   timestamps: true
 });
 
-payslipSchema.index({ employeeId: 1, periodStart: 1, periodEnd: 1 }, { unique: true });
+payslipSchema.index({ userId: 1, periodStart: 1, periodEnd: 1 }, { unique: true });
 
 module.exports = mongoose.model('Payslip', payslipSchema);

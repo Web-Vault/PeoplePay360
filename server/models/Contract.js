@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const contractSchema = new Schema({
-  employeeId: {
+  userId: {
     type: Schema.Types.ObjectId,
-    ref: 'Employee',
+    ref: 'User',
     required: true
   },
   contractNumber: {
@@ -53,6 +53,6 @@ const contractSchema = new Schema({
   timestamps: true
 });
 
-contractSchema.index({ employeeId: 1, startDate: 1, endDate: 1 });
+contractSchema.index({ userId: 1, startDate: 1, endDate: 1 });
 
 module.exports = mongoose.model('Contract', contractSchema);

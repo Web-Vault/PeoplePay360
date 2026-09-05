@@ -36,14 +36,6 @@ const validateCreateUser = [
     .withMessage('Role is required')
     .isIn(ROLES)
     .withMessage(`Invalid role. Valid roles: ${ROLES.join(', ')}`),
-  body('employeeId')
-    .optional()
-    .custom((v) => {
-      if (v && !mongoose.Types.ObjectId.isValid(v)) {
-        throw new Error('Invalid employeeId format');
-      }
-      return true;
-    }),
   body('isActive')
     .optional()
     .isBoolean()
@@ -79,14 +71,6 @@ const validateUpdateUser = [
     .optional()
     .isIn(ROLES)
     .withMessage(`Invalid role. Valid roles: ${ROLES.join(', ')}`),
-  body('employeeId')
-    .optional({ nullable: true })
-    .custom((v) => {
-      if (v !== null && v !== undefined && !mongoose.Types.ObjectId.isValid(v)) {
-        throw new Error('Invalid employeeId format');
-      }
-      return true;
-    }),
   body('isActive')
     .optional()
     .isBoolean()
@@ -172,6 +156,10 @@ const validateListUsers = [
     .optional()
     .isIn(ROLES)
     .withMessage(`Invalid role filter. Valid: ${ROLES.join(', ')}`),
+  query('scope')
+    .optional()
+    .isIn(['management'])
+    .withMessage('Invalid user scope'),
   query('isActive')
     .optional()
     .isIn(['true', 'false'])
