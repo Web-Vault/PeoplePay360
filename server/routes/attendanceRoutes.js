@@ -1,0 +1,14 @@
+const router = require('express').Router();
+const { authenticate } = require('../middleware/authMiddleware');
+const { authorizeRoles } = require('../middleware/roleMiddleware');
+const controller = require('../controllers/attendanceController');
+router.use(authenticate);
+router.get('/me/today', controller.today);
+router.post('/me/check-in', controller.checkIn);
+router.post('/me/check-out', controller.checkOut);
+router.post('/me/overtime-choice', controller.chooseOvertime);
+router.post('/check-in', controller.checkIn);
+router.post('/check-out', controller.checkOut);
+router.get('/mine', controller.mine);
+router.get('/', authorizeRoles('admin', 'hr_manager', 'payroll_user', 'payroll_manager'), controller.list);
+module.exports = router;

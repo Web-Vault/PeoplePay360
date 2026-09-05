@@ -12,6 +12,7 @@ const workingScheduleSchema = new Schema({
     required: true,
     default: 40
   },
+  dailyHours: { type: Number, default: 8, min: 0 },
   days: [{
     day: {
       type: String

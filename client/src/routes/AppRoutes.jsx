@@ -10,6 +10,14 @@ import Dashboard from '../pages/Dashboard'
 import EmployeeList from '../pages/employees/EmployeeList'
 import EmployeeDetail from '../pages/employees/EmployeeDetail'
 import EmployeeForm from '../pages/employees/EmployeeForm'
+import ContractList from '../pages/contracts/ContractList'
+import ContractDetail from '../pages/contracts/ContractDetail'
+import MyAttendance from '../pages/employee/MyAttendance'
+import MyPayslips from '../pages/employee/MyPayslips'
+import MyTimeOff from '../pages/employee/MyTimeOff'
+import AttendanceList from '../pages/attendance/AttendanceList'
+import PayrollList from '../pages/payroll/PayrollList'
+import PayrollDetail from '../pages/payroll/PayrollDetail'
 import { ROLES } from '../utils/constants'
 
 const ALL_ROLES = [ROLES.ADMIN, ROLES.HR, ROLES.PAYROLL_USER, ROLES.PAYROLL_MANAGER, ROLES.EMPLOYEE]
@@ -33,13 +41,15 @@ export default function AppRoutes() {
             <Route path="/employees/new" element={<EmployeeForm />} />
             <Route path="/employees/:id" element={<EmployeeDetail />} />
             <Route path="/employees/:id/edit" element={<EmployeeForm />} />
-            <Route path="/contracts" element={<PlaceholderPage title="Contracts" />} />
-            <Route path="/attendance" element={<PlaceholderPage title="Attendance" />} />
+            <Route path="/contracts" element={<ContractList />} />
+            <Route path="/contracts/:id" element={<ContractDetail />} />
+            <Route path="/attendance" element={<AttendanceList />} />
             <Route path="/time-off" element={<PlaceholderPage title="Time Off" />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={ADMIN_PAYROLL} />}>
-            <Route path="/payroll" element={<PlaceholderPage title="Payroll" />} />
+            <Route path="/payroll" element={<PayrollList />} />
+            <Route path="/payroll/:id" element={<PayrollDetail />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={ADMIN_AND_PAYROLL_MANAGER} />}>
@@ -54,9 +64,9 @@ export default function AppRoutes() {
 
           <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
             <Route path="/my-profile" element={<MyProfile />} />
-            <Route path="/my-attendance" element={<PlaceholderPage title="My Attendance" />} />
-            <Route path="/my-time-off" element={<PlaceholderPage title="My Time Off" />} />
-            <Route path="/my-payslips" element={<PlaceholderPage title="My Payslips" />} />
+            <Route path="/my-attendance" element={<MyAttendance />} />
+            <Route path="/my-time-off" element={<MyTimeOff />} />
+            <Route path="/my-payslips" element={<MyPayslips />} />
             <Route path="/explain-my-salary" element={<PlaceholderPage title="Explain My Salary" />} />
           </Route>
         </Route>

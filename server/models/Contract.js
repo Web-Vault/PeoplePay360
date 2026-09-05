@@ -23,6 +23,9 @@ const contractSchema = new Schema({
     type: Number,
     required: true
   },
+  allowances: [{ name: String, amount: { type: Number, default: 0 } }],
+  deductions: [{ name: String, amount: { type: Number, default: 0 } }],
+  overtimeRate: { type: Number, default: 0 },
   salaryStructureId: {
     type: Schema.Types.ObjectId,
     ref: 'SalaryStructure'

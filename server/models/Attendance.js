@@ -17,6 +17,11 @@ const attendanceSchema = new Schema({
   checkOut: {
     type: Date
   },
+  sessions: [{
+    checkIn: { type: Date, required: true },
+    checkOut: { type: Date },
+    hours: { type: Number, default: 0 }
+  }],
   workedHours: {
     type: Number
   },
@@ -24,6 +29,7 @@ const attendanceSchema = new Schema({
     type: Number,
     default: 0
   },
+  overtimeChoice: { type: String, enum: ['cash', 'comp_time'] },
   status: {
     type: String,
     enum: ['present', 'absent', 'half_day', 'leave', 'holiday'],

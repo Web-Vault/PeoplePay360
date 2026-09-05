@@ -10,6 +10,10 @@ const { connectDB } = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
+const contractRoutes = require('./routes/contractRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+const selfServiceRoutes = require('./routes/selfServiceRoutes');
+const payrollRoutes = require('./routes/payrollRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 require('./models/User');
@@ -17,6 +21,8 @@ require('./models/Department');
 require('./models/Contract');
 require('./models/WorkingSchedule');
 require('./models/Attendance');
+require('./models/WorkSession');
+require('./models/OvertimeChoice');
 require('./models/TimeOffType');
 require('./models/TimeOffAllocation');
 require('./models/TimeOffRequest');
@@ -88,6 +94,10 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/contracts', contractRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api', selfServiceRoutes);
+app.use('/api/payroll', payrollRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

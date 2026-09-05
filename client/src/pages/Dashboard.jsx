@@ -20,6 +20,8 @@ import { listUsers } from '../services/userService'
 import { useAuth } from '../context/AuthContext'
 import { roleLabels } from '../utils/constants'
 import { formatDate } from '../utils/helpers'
+import { getDashboard } from '../services/selfService'
+import { ROLES } from '../utils/constants'
 
 const payroll = {
   period: 'August 2026',
@@ -67,6 +69,7 @@ export default function Dashboard() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [employeeSummary, setEmployeeSummary] = useState(null)
 
   const loadUsers = async () => {
     setLoading(true)
@@ -81,7 +84,11 @@ export default function Dashboard() {
     }
   }
 
-  useEffect(() => { loadUsers() }, [])
+  useEffect(() => {
+    if (user?.role === ROLES.EMPLOYEE) {
+      getDashboard().then((response) => setEmployeeSummary(response.data)).catch((err) => setError(err.response?.data?.message || 'Could not load your dashboard.')).finally(() => setLoading(false))
+    } else loadUsers()
+  }, [])
 
   const activeUsers = users.filter((account) => account.isActive).length
   const recentUsers = users.slice(0, 5)
@@ -95,6 +102,8 @@ export default function Dashboard() {
   }, [users])
 
   const greeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'
+
+  if (user?.role === ROLES.EMPLOYEE) return <div className="space-y-6"><section className="rounded-2xl bg-slate-900 p-7 text-white shadow-lg"><p className="text-sm text-blue-200">Your work overview</p><h1 className="mt-2 text-3xl font-bold">{greeting}, {user?.name?.split(' ')[0]}.</h1><p className="mt-2 text-sm text-slate-300">Your attendance, overtime, leave, and latest pay—only your own data.</p></section>{error && <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}<section className="grid gap-4 sm:grid-cols-3"><MetricCard icon={Clock3} label="Worked today" value={`${employeeSummary?.today?.workedHours || 0} hrs`} detail="Across all sessions" /><MetricCard icon={Banknote} label="Overtime today" value={`${employeeSummary?.today?.overtimeHours || 0} hrs`} detail="Cash or comp time eligible" tone="amber" /><MetricCard icon={Wallet} label="Daily earnings" value={formatINR(employeeSummary?.today?.dailyEarnings || 0)} detail="Based on latest payslip" tone="emerald" /></section><section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="font-semibold text-slate-900">Latest payslip</h2>{employeeSummary?.latestPayslip ? <div className="mt-4 flex items-center justify-between"><div><p className="font-medium text-slate-800">{formatDate(employeeSummary.latestPayslip.periodStart)} – {formatDate(employeeSummary.latestPayslip.periodEnd)}</p><p className="text-sm text-slate-500">Deductions: {formatINR(employeeSummary.latestPayslip.totalDeductions)}</p></div><p className="text-xl font-bold text-slate-900">{formatINR(employeeSummary.latestPayslip.netSalary)}</p></div> : <p className="mt-3 text-sm text-slate-500">No payslip issued yet.</p>}</section></div>
 
   return (
     <div className="space-y-6 pb-5">

@@ -1,0 +1,10 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const { authenticate } = require('../middleware/authMiddleware');
+const controller = require('../controllers/selfServiceController');
+router.use(authenticate);
+router.get('/dashboard', controller.dashboard);
+router.get('/time-off/mine', controller.myTimeOff);
+router.post('/time-off/mine', [body('timeOffTypeId').isMongoId(), body('startDate').isISO8601(), body('endDate').isISO8601(), body('reason').optional().isLength({ max: 500 })], controller.requestTimeOff);
+router.get('/payslips/mine', controller.myPayslips);
+module.exports = router;

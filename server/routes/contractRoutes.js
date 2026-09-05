@@ -1,0 +1,11 @@
+const router = require('express').Router();
+const { body, param } = require('express-validator');
+const { authenticate } = require('../middleware/authMiddleware');
+const { authorizeRoles } = require('../middleware/roleMiddleware');
+const controller = require('../controllers/contractController');
+const roles = ['admin', 'hr_manager', 'payroll_user', 'payroll_manager'];
+router.use(authenticate, authorizeRoles(...roles));
+router.get('/', controller.listContracts);
+router.get('/:id', [param('id').isMongoId()], controller.getContract);
+router.put('/:id', [param('id').isMongoId(), body('basicSalary').optional().isFloat({ min: 0 }), body('overtimeRate').optional().isFloat({ min: 0 }), body('allowances').optional().isArray(), body('allowances.*.name').optional().trim().isLength({ min: 1, max: 80 }), body('allowances.*.amount').optional().isFloat({ min: 0 }), body('deductions').optional().isArray(), body('deductions.*.name').optional().trim().isLength({ min: 1, max: 80 }), body('deductions.*.amount').optional().isFloat({ min: 0 }), body('status').optional().isIn(['draft', 'active', 'expired', 'terminated'])], controller.updateContract);
+module.exports = router;
