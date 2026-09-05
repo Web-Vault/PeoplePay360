@@ -7,6 +7,16 @@ const populate = [
 ];
 
 function money(value) { return Number(value || 0); }
+function monthPeriod(date = new Date()) { return { start: new Date(date.getFullYear(), date.getMonth(), 1), end: new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999) }; }
+function selectCurrentContract(contracts, start, end) {
+  const period = start && end ? { start, end } : monthPeriod();
+  const overlaps = contracts.filter((contract) => new Date(contract.startDate) <= period.end && (!contract.endDate || new Date(contract.endDate) >= period.start));
+  const choices = overlaps.length ? overlaps : contracts;
+  return [...choices].sort((a, b) => {
+    const rank = (contract) => contract.status === 'active' ? 3 : contract.status === 'draft' ? 2 : contract.status === 'expired' ? 1 : 0;
+    return rank(b) - rank(a) || new Date(b.startDate) - new Date(a.startDate);
+  })[0] || null;
+}
 function calculate(contract) {
   const rules = (contract.salaryStructureId?.ruleIds || []).sort((a, b) => a.sequence - b.sequence);
   const amounts = { BASIC: money(contract.basicSalary) };
@@ -29,5 +39,6 @@ function calculate(contract) {
 
 async function listContracts() { const items = await Contract.find().populate(populate).sort({ startDate: -1 }).lean(); return items.map((contract) => ({ ...contract, pay: calculate(contract) })); }
 async function getContract(id) { const contract = await Contract.findById(id).populate(populate).lean(); if (!contract) { const error = new Error('Contract not found'); error.statusCode = 404; throw error; } return { ...contract, pay: calculate(contract) }; }
+async function getCurrentContract(userId, start, end) { const contracts = await Contract.find({ userId }).populate(populate).lean(); const contract = selectCurrentContract(contracts, start, end); return contract ? { ...contract, pay: calculate(contract) } : null; }
 async function updateContract(id, data) { await Contract.findByIdAndUpdate(id, data, { runValidators: true }); return getContract(id); }
-module.exports = { listContracts, getContract, updateContract };
+module.exports = { listContracts, getContract, getCurrentContract, selectCurrentContract, updateContract, calculate };

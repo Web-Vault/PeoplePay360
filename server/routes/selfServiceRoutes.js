@@ -6,5 +6,7 @@ router.use(authenticate);
 router.get('/dashboard', controller.dashboard);
 router.get('/time-off/mine', controller.myTimeOff);
 router.post('/time-off/mine', [body('timeOffTypeId').isMongoId(), body('startDate').isISO8601(), body('endDate').isISO8601(), body('reason').optional().isLength({ max: 500 })], controller.requestTimeOff);
+router.get('/time-off', require('../middleware/roleMiddleware').authorizeRoles('admin', 'hr_manager', 'payroll_user', 'payroll_manager'), controller.listTimeOff);
+router.put('/time-off/:id/approve', require('../middleware/roleMiddleware').authorizeRoles('admin', 'hr_manager'), controller.approveTimeOff);
 router.get('/payslips/mine', controller.myPayslips);
 module.exports = router;

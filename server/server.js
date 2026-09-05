@@ -14,6 +14,7 @@ const contractRoutes = require('./routes/contractRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const selfServiceRoutes = require('./routes/selfServiceRoutes');
 const payrollRoutes = require('./routes/payrollRoutes');
+const salaryRoutes = require('./routes/salaryRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 require('./models/User');
@@ -98,6 +99,7 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api', selfServiceRoutes);
 app.use('/api/payroll', payrollRoutes);
+app.use('/api/salary', salaryRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

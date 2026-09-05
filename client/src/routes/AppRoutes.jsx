@@ -13,11 +13,15 @@ import EmployeeForm from '../pages/employees/EmployeeForm'
 import ContractList from '../pages/contracts/ContractList'
 import ContractDetail from '../pages/contracts/ContractDetail'
 import MyAttendance from '../pages/employee/MyAttendance'
+import MyAttendancePage from '../pages/employee/MyAttendancePage'
 import MyPayslips from '../pages/employee/MyPayslips'
 import MyTimeOff from '../pages/employee/MyTimeOff'
 import AttendanceList from '../pages/attendance/AttendanceList'
 import PayrollList from '../pages/payroll/PayrollList'
 import PayrollDetail from '../pages/payroll/PayrollDetail'
+import EmployeePayrollDetail from '../pages/payroll/EmployeePayrollDetail'
+import SalaryRules from '../pages/salary/SalaryRules'
+import SalaryStructures from '../pages/salary/SalaryStructures'
 import { ROLES } from '../utils/constants'
 
 const ALL_ROLES = [ROLES.ADMIN, ROLES.HR, ROLES.PAYROLL_USER, ROLES.PAYROLL_MANAGER, ROLES.EMPLOYEE]
@@ -49,12 +53,13 @@ export default function AppRoutes() {
 
           <Route element={<ProtectedRoute allowedRoles={ADMIN_PAYROLL} />}>
             <Route path="/payroll" element={<PayrollList />} />
+            <Route path="/payroll/employee/:userId" element={<EmployeePayrollDetail />} />
             <Route path="/payroll/:id" element={<PayrollDetail />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={ADMIN_AND_PAYROLL_MANAGER} />}>
-            <Route path="/salary-structures" element={<PlaceholderPage title="Salary Structures" />} />
-            <Route path="/salary-rules" element={<PlaceholderPage title="Salary Rules" />} />
+            <Route path="/salary-structures" element={<SalaryStructures />} />
+            <Route path="/salary-rules" element={<SalaryRules />} />
             <Route path="/reports" element={<PlaceholderPage title="Reports" />} />
           </Route>
 
@@ -64,7 +69,7 @@ export default function AppRoutes() {
 
           <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
             <Route path="/my-profile" element={<MyProfile />} />
-            <Route path="/my-attendance" element={<MyAttendance />} />
+            <Route path="/my-attendance" element={<MyAttendancePage />} />
             <Route path="/my-time-off" element={<MyTimeOff />} />
             <Route path="/my-payslips" element={<MyPayslips />} />
             <Route path="/explain-my-salary" element={<PlaceholderPage title="Explain My Salary" />} />
