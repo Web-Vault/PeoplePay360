@@ -19,7 +19,8 @@ import {
   LogOut,
   ChevronDown,
   Menu,
-  X
+  X,
+  UserCog
 } from 'lucide-react'
 
 const iconMap = {
@@ -33,7 +34,8 @@ const iconMap = {
   BarChart3,
   FileBarChart2,
   User,
-  Shield
+  Shield,
+  UserCog
 }
 
 function getNavItems(role) {
@@ -41,6 +43,7 @@ function getNavItems(role) {
     case ROLES.ADMIN:
       return [
         { label: 'Dashboard', path: '/dashboard', icon: 'LayoutDashboard' },
+        { label: 'User Management', path: '/users', icon: 'UserCog' },
         { label: 'Employees', path: '/employees', icon: 'Users' },
         { label: 'Contracts', path: '/contracts', icon: 'FileText' },
         { label: 'Attendance', path: '/attendance', icon: 'Clock' },

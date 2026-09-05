@@ -4,7 +4,8 @@ const { Schema } = mongoose;
 const userSchema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   email: {
     type: String,
@@ -28,15 +29,40 @@ const userSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Employee'
   },
+  phone: {
+    type: String,
+    trim: true
+  },
+  profilePicture: {
+    type: String,
+    trim: true
+  },
   isActive: {
     type: Boolean,
     default: true
   },
   lastLogin: {
     type: Date
+  },
+  lastPasswordChange: {
+    type: Date
+  },
+  passwordResetToken: {
+    type: String
+  },
+  passwordResetExpires: {
+    type: Date
+  },
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
   }
 }, {
   timestamps: true
 });
+
+userSchema.index({ role: 1 });
+userSchema.index({ isActive: 1 });
+userSchema.index({ employeeId: 1 });
 
 module.exports = mongoose.model('User', userSchema);

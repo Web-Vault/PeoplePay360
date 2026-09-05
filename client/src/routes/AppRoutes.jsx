@@ -4,12 +4,15 @@ import AppLayout from '../layouts/AppLayout'
 import Login from '../pages/Login'
 import Unauthorized from '../pages/Unauthorized'
 import PlaceholderPage from '../pages/PlaceholderPage'
+import UserManagement from '../pages/admin/UserManagement'
+import MyProfile from '../pages/MyProfile'
 import { ROLES } from '../utils/constants'
 
 const ALL_ROLES = [ROLES.ADMIN, ROLES.HR, ROLES.PAYROLL_USER, ROLES.PAYROLL_MANAGER, ROLES.EMPLOYEE]
+const ADMIN_ONLY = [ROLES.ADMIN]
 const ADMIN_AND_PAYROLL_MANAGER = [ROLES.ADMIN, ROLES.PAYROLL_MANAGER]
 const ADMIN_PAYROLL = [ROLES.ADMIN, ROLES.PAYROLL_USER, ROLES.PAYROLL_MANAGER]
-const ADMIN_HR = [ROLES.ADMIN, ROLES.HR]
+const MANAGER_ROLES = [ROLES.ADMIN, ROLES.HR, ROLES.PAYROLL_USER, ROLES.PAYROLL_MANAGER]
 
 export default function AppRoutes() {
   return (
@@ -21,13 +24,7 @@ export default function AppRoutes() {
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<PlaceholderPage title="Dashboard" />} />
 
-          <Route
-            element={
-              <ProtectedRoute
-                allowedRoles={[ROLES.ADMIN, ROLES.HR, ROLES.PAYROLL_USER, ROLES.PAYROLL_MANAGER]}
-              />
-            }
-          >
+          <Route element={<ProtectedRoute allowedRoles={MANAGER_ROLES} />}>
             <Route path="/employees" element={<PlaceholderPage title="Employees" />} />
             <Route path="/contracts" element={<PlaceholderPage title="Contracts" />} />
             <Route path="/attendance" element={<PlaceholderPage title="Attendance" />} />
@@ -44,8 +41,12 @@ export default function AppRoutes() {
             <Route path="/reports" element={<PlaceholderPage title="Reports" />} />
           </Route>
 
-          <Route element={<ProtectedRoute allowedRoles={[ROLES.EMPLOYEE, ...ALL_ROLES]} />}>
-            <Route path="/my-profile" element={<PlaceholderPage title="My Profile" />} />
+          <Route element={<ProtectedRoute allowedRoles={ADMIN_ONLY} />}>
+            <Route path="/users" element={<UserManagement />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
+            <Route path="/my-profile" element={<MyProfile />} />
             <Route path="/my-attendance" element={<PlaceholderPage title="My Attendance" />} />
             <Route path="/my-time-off" element={<PlaceholderPage title="My Time Off" />} />
             <Route path="/my-payslips" element={<PlaceholderPage title="My Payslips" />} />

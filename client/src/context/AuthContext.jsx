@@ -55,8 +55,15 @@ export function AuthProvider({ children }) {
 
   const isAuthenticated = Boolean(user && token)
 
+  const setUserAndStore = (updatedUser) => {
+    setUser(updatedUser)
+    if (token) {
+      authService.storeAuth({ token, user: updatedUser })
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, isAuthenticated, login, logout, setUser: setUserAndStore }}>
       {children}
     </AuthContext.Provider>
   )

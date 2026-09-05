@@ -39,7 +39,7 @@ const errorHandler = (err, req, res, next) => {
     errors: err.errors || []
   };
 
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.SHOW_STACK === 'true' || process.env.DEBUG_STACK === '1') {
     response.stack = err.stack;
   }
 

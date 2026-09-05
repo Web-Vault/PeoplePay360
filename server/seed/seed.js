@@ -373,6 +373,7 @@ async function seedUsers(empByCode) {
   console.log('🔐 Seeding demo users (bcrypt hashed passwords)...');
   const hash = await bcrypt.hash(PASSWORD, 10);
   const findEmpByEmail = (email) => Object.values(empByCode).find(e => e.email === email);
+  const now = new Date();
 
   const users = [
     {
@@ -381,7 +382,11 @@ async function seedUsers(empByCode) {
       passwordHash: hash,
       role: 'admin',
       employeeId: null,
-      isActive: true
+      phone: '+91-99999-00001',
+      profilePicture: null,
+      isActive: true,
+      lastPasswordChange: now,
+      createdBy: null
     },
     {
       name: 'Priya Verma',
@@ -389,7 +394,11 @@ async function seedUsers(empByCode) {
       passwordHash: hash,
       role: 'hr_manager',
       employeeId: findEmpByEmail('priya.verma@peoplepay360.com')?._id || null,
-      isActive: true
+      phone: '+91-98111-22334',
+      profilePicture: null,
+      isActive: true,
+      lastPasswordChange: now,
+      createdBy: null
     },
     {
       name: 'Nikhil Khan',
@@ -397,7 +406,11 @@ async function seedUsers(empByCode) {
       passwordHash: hash,
       role: 'payroll_user',
       employeeId: findEmpByEmail('nikhil.khan@peoplepay360.com')?._id || null,
-      isActive: true
+      phone: '+91-99112-33440',
+      profilePicture: null,
+      isActive: true,
+      lastPasswordChange: now,
+      createdBy: null
     },
     {
       name: 'Ananya Rao',
@@ -405,7 +418,11 @@ async function seedUsers(empByCode) {
       passwordHash: hash,
       role: 'payroll_manager',
       employeeId: findEmpByEmail('ananya.rao@peoplepay360.com')?._id || null,
-      isActive: true
+      phone: '+91-96111-00998',
+      profilePicture: null,
+      isActive: true,
+      lastPasswordChange: now,
+      createdBy: null
     },
     {
       name: 'Ishita Agarwal',
@@ -413,10 +430,16 @@ async function seedUsers(empByCode) {
       passwordHash: hash,
       role: 'employee',
       employeeId: findEmpByEmail('employee@peoplepay360.com')?._id || null,
-      isActive: true
+      phone: '+91-98110-33441',
+      profilePicture: null,
+      isActive: true,
+      lastPasswordChange: now,
+      createdBy: null
     }
   ];
   const result = await User.create(users);
+  const adminId = result[0]._id;
+  await User.updateMany({ _id: { $ne: adminId } }, { $set: { createdBy: adminId } });
   console.log(`✅ ${result.length} users created — password: ${PASSWORD}`);
   return result;
 }
