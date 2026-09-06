@@ -11,6 +11,11 @@ const dayEnd = (date) => { const value = dayStart(date); value.setDate(value.get
 const hours = (start, end) => Math.max(0, (new Date(end) - new Date(start)) / 3600000);
 
 async function dailyLimit(userId, date) {
+  const contract = await getCurrentContract(userId, dayStart(date), dayEnd(date));
+  if (contract?.workStartTime && contract?.workEndTime) {
+    const [sh, sm] = contract.workStartTime.split(':').map(Number); const [eh, em] = contract.workEndTime.split(':').map(Number);
+    return Math.max(0, ((eh * 60 + em) - (sh * 60 + sm) - Number(contract.breakMinutes || 0)) / 60);
+  }
   const user = await User.findById(userId).populate('scheduleId');
   const schedule = user?.scheduleId;
   if (!schedule) return 8;

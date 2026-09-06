@@ -6,3 +6,4 @@ export const getMyPayslips = async () => (await api.get('/payslips/mine')).data
 export const getMyTimeOff = async () => (await api.get('/time-off/mine')).data
 export const requestTimeOff = async (payload) => (await api.post('/time-off/mine', payload)).data
 export const getDashboard = async () => (await api.get('/dashboard')).data
+export const getMyContract = async () => (await api.get('/my-contract')).data

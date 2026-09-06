@@ -25,7 +25,17 @@ const contractSchema = new Schema({
   },
   allowances: [{ name: String, amount: { type: Number, default: 0 } }],
   deductions: [{ name: String, amount: { type: Number, default: 0 } }],
+  adjustments: [{
+    name: { type: String, required: true },
+    type: { type: String, enum: ['addition', 'deduction'], required: true },
+    amount: { type: Number, min: 0, required: true },
+    effectiveMonth: { type: String, required: true },
+    note: { type: String, default: '' }
+  }],
   overtimeRate: { type: Number, default: 0 },
+  workStartTime: { type: String, default: '09:00', match: /^([01]\d|2[0-3]):[0-5]\d$/ },
+  workEndTime: { type: String, default: '18:00', match: /^([01]\d|2[0-3]):[0-5]\d$/ },
+  breakMinutes: { type: Number, default: 60, min: 0, max: 480 },
   salaryStructureId: {
     type: Schema.Types.ObjectId,
     ref: 'SalaryStructure'

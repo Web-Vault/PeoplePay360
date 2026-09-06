@@ -4,3 +4,4 @@ const check = (req, res) => { const errors = validationResult(req); if (errors.i
 exports.listContracts = async (_req, res, next) => { try { res.json({ success: true, data: { contracts: await contracts.listContracts() } }); } catch (error) { next(error); } };
 exports.getContract = async (req, res, next) => { try { res.json({ success: true, data: { contract: await contracts.getContract(req.params.id) } }); } catch (error) { next(error); } };
 exports.updateContract = async (req, res, next) => { try { if (!check(req, res)) res.json({ success: true, data: { contract: await contracts.updateContract(req.params.id, req.body) } }); } catch (error) { next(error); } };
+exports.renewContract = async (req, res, next) => { try { if (!check(req, res)) res.status(201).json({ success: true, data: { contract: await contracts.renewContract(req.params.id, req.body) } }); } catch (error) { next(error); } };

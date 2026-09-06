@@ -9,4 +9,5 @@ router.post('/time-off/mine', [body('timeOffTypeId').isMongoId(), body('startDat
 router.get('/time-off', require('../middleware/roleMiddleware').authorizeRoles('admin', 'hr_manager', 'payroll_user', 'payroll_manager'), controller.listTimeOff);
 router.put('/time-off/:id/approve', require('../middleware/roleMiddleware').authorizeRoles('admin', 'hr_manager'), controller.approveTimeOff);
 router.get('/payslips/mine', controller.myPayslips);
+router.get('/my-contract', controller.myContract);
 module.exports = router;

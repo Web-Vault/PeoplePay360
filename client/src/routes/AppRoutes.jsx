@@ -16,6 +16,8 @@ import MyAttendance from '../pages/employee/MyAttendance'
 import MyAttendancePage from '../pages/employee/MyAttendancePage'
 import MyPayslips from '../pages/employee/MyPayslips'
 import MyTimeOff from '../pages/employee/MyTimeOff'
+import MyContract from '../pages/employee/MyContract'
+import ExplainMySalary from '../pages/employee/ExplainMySalary'
 import AttendanceList from '../pages/attendance/AttendanceList'
 import PayrollList from '../pages/payroll/PayrollList'
 import PayrollDetail from '../pages/payroll/PayrollDetail'
@@ -72,7 +74,8 @@ export default function AppRoutes() {
             <Route path="/my-attendance" element={<MyAttendancePage />} />
             <Route path="/my-time-off" element={<MyTimeOff />} />
             <Route path="/my-payslips" element={<MyPayslips />} />
-            <Route path="/explain-my-salary" element={<PlaceholderPage title="Explain My Salary" />} />
+            <Route path="/my-contract" element={<MyContract />} />
+            <Route path="/explain-my-salary" element={<ExplainMySalary />} />
           </Route>
         </Route>
       </Route>

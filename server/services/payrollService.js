@@ -8,9 +8,14 @@ require('../models/SalaryRule');
 const Attendance = require('../models/Attendance');
 const Contract = require('../models/Contract');
 const TimeOffRequest = require('../models/TimeOffRequest');
-const { calculate, selectCurrentContract } = require('./contractService');
+const { calculate, selectCurrentContract, adjustmentsFor } = require('./contractService');
 
-function dailyLimit(schedule, date) {
+function dailyLimit(schedule, date, contract) {
+  if (contract?.workStartTime && contract?.workEndTime) {
+    const [startHour, startMinute] = contract.workStartTime.split(':').map(Number);
+    const [endHour, endMinute] = contract.workEndTime.split(':').map(Number);
+    return Math.max(0, ((endHour * 60 + endMinute) - (startHour * 60 + startMinute) - Number(contract.breakMinutes || 0)) / 60);
+  }
   const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
   const day = schedule?.days?.find((item) => item.day === dayName);
   if (!day) return 8;
@@ -45,13 +50,16 @@ async function currentProjection() {
   const currentContracts = [...byUser.values()].map((items) => selectCurrentContract(items, start, end)).filter(Boolean);
   const rows = await Promise.all(currentContracts.map(async (contract) => {
     const [attendance, pay] = await Promise.all([Attendance.find({ userId: contract.userId._id, date: { $gte: start, $lte: end } }).lean(), Promise.resolve(calculate(contract))]);
+    const adjustments = adjustmentsFor(contract, start);
+    const additions = adjustments.filter((item) => item.type === 'addition').reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const specialDeductions = adjustments.filter((item) => item.type === 'deduction').reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const workedDays = attendance.filter((item) => item.workedHours > 0).length;
     const workedHours = attendance.reduce((sum, item) => sum + Number(item.workedHours || 0), 0);
-    const overtimeFor = (item) => Math.max(Number(item.overtimeHours || 0), Number((Number(item.workedHours || 0) - dailyLimit(contract.userId.scheduleId, item.date)).toFixed(2)), 0);
+    const overtimeFor = (item) => Math.max(Number(item.overtimeHours || 0), Number((Number(item.workedHours || 0) - dailyLimit(contract.userId.scheduleId, item.date, contract)).toFixed(2)), 0);
     const overtimeHours = attendance.reduce((sum, item) => sum + overtimeFor(item), 0);
     const cashOvertime = attendance.filter((item) => item.overtimeChoice === 'cash').reduce((sum, item) => sum + overtimeFor(item), 0);
     const dailyGross = pay.gross / 22; const dailyNet = pay.net / 22;
-    return { userId: contract.userId._id, name: contract.userId.name, employeeCode: contract.userId.employeeCode, contractId: contract._id, contractStatus: contract.status, monthlyGross: pay.gross, monthlyDeductions: pay.totalDeductions, monthlyNet: pay.net, workedDays, workedHours: Number(workedHours.toFixed(2)), overtimeHours: Number(overtimeHours.toFixed(2)), cashOvertimeHours: Number(cashOvertime.toFixed(2)), overtimePay: Number((cashOvertime * Number(contract.overtimeRate || 0)).toFixed(2)), earnedGross: Number((workedDays * dailyGross + cashOvertime * Number(contract.overtimeRate || 0)).toFixed(2)), earnedNet: Number((workedDays * dailyNet + cashOvertime * Number(contract.overtimeRate || 0)).toFixed(2)) };
+    return { userId: contract.userId._id, name: contract.userId.name, employeeCode: contract.userId.employeeCode, contractId: contract._id, contractStatus: contract.status, monthlyGross: pay.gross + additions, monthlyDeductions: pay.totalDeductions + specialDeductions, monthlyNet: pay.net + additions - specialDeductions, adjustments, adjustmentAdditions: additions, adjustmentDeductions: specialDeductions, workedDays, workedHours: Number(workedHours.toFixed(2)), overtimeHours: Number(overtimeHours.toFixed(2)), cashOvertimeHours: Number(cashOvertime.toFixed(2)), overtimePay: Number((cashOvertime * Number(contract.overtimeRate || 0)).toFixed(2)), earnedGross: Number((workedDays * dailyGross + cashOvertime * Number(contract.overtimeRate || 0) + additions).toFixed(2)), earnedNet: Number((workedDays * dailyNet + cashOvertime * Number(contract.overtimeRate || 0) + additions - specialDeductions).toFixed(2)) };
   }));
   return { periodStart: start, periodEnd: end, employees: rows, totals: { employees: rows.length, gross: rows.reduce((sum, row) => sum + row.earnedGross, 0), net: rows.reduce((sum, row) => sum + row.earnedNet, 0), overtimeHours: rows.reduce((sum, row) => sum + row.overtimeHours, 0) } };
 }
@@ -69,7 +77,7 @@ async function employeePayroll(userId) {
   const unpaidDays = unpaidLeaves.filter((leave) => leave.timeOffTypeId && !leave.timeOffTypeId.isPaid).reduce((sum, leave) => sum + Number(leave.days || 0), 0);
   const leaveDeduction = Number((unpaidDays * pay.net / 22).toFixed(2));
   const earnedSoFar = Number((row.earnedNet - leaveDeduction).toFixed(2));
-  const projectedMonthPay = Number((pay.net + row.overtimePay - leaveDeduction).toFixed(2));
+  const projectedMonthPay = Number((pay.net + row.adjustmentAdditions - row.adjustmentDeductions + row.overtimePay - leaveDeduction).toFixed(2));
   return { ...row, employee: contract.userId, contract: { basicSalary: contract.basicSalary, allowances: pay.allowances, deductions: pay.deductions, gross: pay.gross, net: pay.net, overtimeRate: contract.overtimeRate }, overtime: { cashHours: row.cashOvertimeHours, cashAmount: row.overtimePay, unallocatedHours: Number((row.overtimeHours - row.cashOvertimeHours).toFixed(2)) }, unpaidLeave: { days: unpaidDays, deduction: leaveDeduction }, earnedSoFar, projectedMonthPay, history };
 }
 

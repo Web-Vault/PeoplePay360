@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowRight,
   Banknote,
   CalendarDays,
@@ -9,6 +10,7 @@ import {
   ChevronRight,
   Clock3,
   FileCheck2,
+  FileText,
   Landmark,
   RefreshCw,
   ShieldCheck,
@@ -64,6 +66,12 @@ function Skeleton() {
   return <div className="animate-pulse rounded-2xl border border-slate-200 bg-white p-5"><div className="h-4 w-24 rounded bg-slate-100" /><div className="mt-4 h-8 w-16 rounded bg-slate-100" /><div className="mt-4 h-3 w-32 rounded bg-slate-100" /></div>
 }
 
+function EmployeeDashboard({ user, summary, error, greeting }) {
+  const expired = summary?.contractExpired
+  const contract = summary?.contract
+  return <div className="space-y-6"><section className="rounded-2xl bg-slate-900 p-7 text-white shadow-lg"><p className="text-sm text-blue-200">Your work overview</p><h1 className="mt-2 text-3xl font-bold">{greeting}, {user?.name?.split(' ')[0]}.</h1><p className="mt-2 text-sm text-slate-300">Your attendance, overtime, leave, pay, and contract information.</p></section>{error && <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}{expired && <section className="flex gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800"><AlertTriangle className="h-5 w-5 shrink-0" /><div><b>Contract action needed</b><p className="mt-1 text-sm">Your current contract is expired or unavailable. Contact HR before the next payroll cycle.</p></div></section>}<section className="grid gap-4 sm:grid-cols-3"><MetricCard icon={Clock3} label="Worked today" value={`${summary?.today?.workedHours || 0} hrs`} detail="Across all sessions" /><MetricCard icon={Banknote} label="Overtime today" value={`${summary?.today?.overtimeHours || 0} hrs`} detail="Cash or comp time eligible" tone="amber" /><MetricCard icon={Wallet} label="Daily earnings" value={formatINR(summary?.today?.dailyEarnings || 0)} detail="Based on issued pay" tone="emerald" /></section><Link to="/my-contract" className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-primary-300 hover:shadow-md"><div className="flex items-center justify-between gap-4"><div className="flex items-center gap-3"><div className="rounded-xl bg-primary-50 p-3"><FileText className="h-5 w-5 text-primary-600" /></div><div><h2 className="font-semibold text-slate-900">My contract</h2><p className="mt-1 text-sm text-slate-500">{contract ? `${contract.contractNumber} · ${formatINR(contract.pay?.net)} monthly net` : 'No current contract found'}</p></div></div><span className={`rounded-full px-3 py-1 text-xs font-semibold ${expired ? 'bg-red-100 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>{expired ? 'Expired' : 'View terms'}</span></div></Link><section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="font-semibold text-slate-900">Latest payslip</h2>{summary?.latestPayslip ? <div className="mt-4 flex items-center justify-between"><div><p className="font-medium text-slate-800">{formatDate(summary.latestPayslip.periodStart)} – {formatDate(summary.latestPayslip.periodEnd)}</p><p className="text-sm text-slate-500">Deductions: {formatINR(summary.latestPayslip.totalDeductions)}</p></div><p className="text-xl font-bold text-slate-900">{formatINR(summary.latestPayslip.netSalary)}</p></div> : <p className="mt-3 text-sm text-slate-500">No payslip issued yet.</p>}</section></div>
+}
+
 export default function Dashboard() {
   const { user } = useAuth()
   const [users, setUsers] = useState([])
@@ -102,6 +110,8 @@ export default function Dashboard() {
   }, [users])
 
   const greeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'
+
+  if (user?.role === ROLES.EMPLOYEE) return <EmployeeDashboard user={user} summary={employeeSummary} error={error} greeting={greeting} />
 
   if (user?.role === ROLES.EMPLOYEE) return <div className="space-y-6"><section className="rounded-2xl bg-slate-900 p-7 text-white shadow-lg"><p className="text-sm text-blue-200">Your work overview</p><h1 className="mt-2 text-3xl font-bold">{greeting}, {user?.name?.split(' ')[0]}.</h1><p className="mt-2 text-sm text-slate-300">Your attendance, overtime, leave, and latest pay—only your own data.</p></section>{error && <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}<section className="grid gap-4 sm:grid-cols-3"><MetricCard icon={Clock3} label="Worked today" value={`${employeeSummary?.today?.workedHours || 0} hrs`} detail="Across all sessions" /><MetricCard icon={Banknote} label="Overtime today" value={`${employeeSummary?.today?.overtimeHours || 0} hrs`} detail="Cash or comp time eligible" tone="amber" /><MetricCard icon={Wallet} label="Daily earnings" value={formatINR(employeeSummary?.today?.dailyEarnings || 0)} detail="Based on latest payslip" tone="emerald" /></section><section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="font-semibold text-slate-900">Latest payslip</h2>{employeeSummary?.latestPayslip ? <div className="mt-4 flex items-center justify-between"><div><p className="font-medium text-slate-800">{formatDate(employeeSummary.latestPayslip.periodStart)} – {formatDate(employeeSummary.latestPayslip.periodEnd)}</p><p className="text-sm text-slate-500">Deductions: {formatINR(employeeSummary.latestPayslip.totalDeductions)}</p></div><p className="text-xl font-bold text-slate-900">{formatINR(employeeSummary.latestPayslip.netSalary)}</p></div> : <p className="mt-3 text-sm text-slate-500">No payslip issued yet.</p>}</section></div>
 
