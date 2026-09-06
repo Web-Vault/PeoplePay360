@@ -1,17 +1,254 @@
-import { useEffect, useState } from 'react'
-import { AlertTriangle, ArrowLeft, Clock3, FileText, Wallet } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { getMyContract } from '../../services/selfService'
+import { useEffect, useState } from 'react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Clock3,
+  FileText,
+  Wallet,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const money = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value || 0)
-const date = (value) => value ? new Date(value).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Ongoing'
+import { getMyContract } from '../../services/selfService';
+
+const money = (value) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(value || 0);
+
+const date = (value) =>
+  value
+    ? new Date(value).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
+    : 'Ongoing';
 
 export default function MyContract() {
-  const [data, setData] = useState(null); const [error, setError] = useState('')
-  useEffect(() => { getMyContract().then((response) => setData(response.data)).catch((e) => setError(e.response?.data?.message || 'Could not load your contract')) }, [])
-  if (error) return <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>
-  if (!data) return <p className="py-20 text-center text-sm text-slate-500">Loading your contract…</p>
-  const contract = data.contract
-  if (!contract) return <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6"><AlertTriangle className="h-6 w-6 text-amber-600" /><h1 className="mt-3 text-xl font-bold">No current contract</h1><p className="mt-1 text-sm text-amber-800">Contact HR to have an active contract assigned to you.</p></div>
-  return <div className="mx-auto max-w-4xl space-y-6"><div><Link to="/dashboard" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-primary-600"><ArrowLeft className="h-4 w-4" />Dashboard</Link><h1 className="mt-3 text-2xl font-bold">My contract</h1><p className="mt-1 text-sm text-slate-500">Your current employment terms and monthly salary components.</p></div>{data.expired && <div className="flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><AlertTriangle className="h-5 w-5 shrink-0" /><span><b>Your contract is expired.</b> Please contact HR or Payroll before your next payroll cycle.</span></div>}<section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-start justify-between"><div className="flex gap-3"><div className="rounded-xl bg-primary-50 p-3"><FileText className="h-6 w-6 text-primary-600" /></div><div><h2 className="font-semibold text-slate-900">{contract.contractNumber}</h2><p className="mt-1 text-sm text-slate-500">{date(contract.startDate)} – {date(contract.endDate)}</p></div></div><span className={`rounded-full px-3 py-1 text-xs font-semibold ${data.expired ? 'bg-red-100 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>{data.expired ? 'Expired' : contract.status}</span></div><div className="mt-6 grid gap-4 sm:grid-cols-3"><div className="rounded-xl bg-slate-50 p-4"><Wallet className="h-5 w-5 text-primary-600" /><p className="mt-2 text-sm text-slate-500">Monthly gross</p><b className="text-lg">{money(contract.pay?.gross)}</b></div><div className="rounded-xl bg-slate-50 p-4"><Wallet className="h-5 w-5 text-emerald-600" /><p className="mt-2 text-sm text-slate-500">Monthly net</p><b className="text-lg text-emerald-700">{money(contract.pay?.net)}</b></div><div className="rounded-xl bg-slate-50 p-4"><Clock3 className="h-5 w-5 text-amber-600" /><p className="mt-2 text-sm text-slate-500">Overtime rate</p><b className="text-lg">{money(contract.overtimeRate)} / hour</b></div></div></section><section className="grid gap-6 md:grid-cols-2"><div className="rounded-2xl border border-slate-200 bg-white p-5"><h2 className="font-semibold">Allowances</h2><div className="mt-3 divide-y">{contract.pay?.allowances?.map((item, index) => <p key={index} className="flex justify-between py-3 text-sm"><span>{item.name}</span><b className="text-emerald-700">{money(item.amount)}</b></p>)}{!contract.pay?.allowances?.length && <p className="py-3 text-sm text-slate-500">No allowances recorded.</p>}</div></div><div className="rounded-2xl border border-slate-200 bg-white p-5"><h2 className="font-semibold">Deductions</h2><div className="mt-3 divide-y">{contract.pay?.deductions?.map((item, index) => <p key={index} className="flex justify-between py-3 text-sm"><span>{item.name}</span><b className="text-red-600">{money(item.amount)}</b></p>)}{!contract.pay?.deductions?.length && <p className="py-3 text-sm text-slate-500">No deductions recorded.</p>}</div></div></section></div>
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+
+  // Load current contract
+  useEffect(() => {
+    getMyContract()
+      .then((response) => {
+        setData(response.data);
+      })
+      .catch((error) => {
+        setError(
+          error.response?.data?.message ||
+            'Could not load your contract'
+        );
+      });
+  }, []);
+
+  // Error state
+  if (error) {
+    return (
+      <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+        {error}
+      </p>
+    );
+  }
+
+  // Loading state
+  if (!data) {
+    return (
+      <p className="py-20 text-center text-sm text-slate-500">
+        Loading your contract…
+      </p>
+    );
+  }
+
+  const contract = data.contract;
+
+  // No active contract
+  if (!contract) {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+        <AlertTriangle className="h-6 w-6 text-amber-600" />
+
+        <h1 className="mt-3 text-xl font-bold">
+          No current contract
+        </h1>
+
+        <p className="mt-1 text-sm text-amber-800">
+          Contact HR to have an active contract assigned to you.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-6">
+      {/* Page Header */}
+      <div>
+        <Link
+          to="/dashboard"
+          className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-primary-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
+        </Link>
+
+        <h1 className="mt-3 text-2xl font-bold">
+          My contract
+        </h1>
+
+        <p className="mt-1 text-sm text-slate-500">
+          Your current employment terms and monthly salary
+          components.
+        </p>
+      </div>
+
+      {/* Expired Contract Warning */}
+      {data.expired && (
+        <div className="flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <AlertTriangle className="h-5 w-5 shrink-0" />
+
+          <span>
+            <b>Your contract is expired.</b> Please contact HR or
+            Payroll before your next payroll cycle.
+          </span>
+        </div>
+      )}
+
+      {/* Contract Overview */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between">
+          {/* Contract Information */}
+          <div className="flex gap-3">
+            <div className="rounded-xl bg-primary-50 p-3">
+              <FileText className="h-6 w-6 text-primary-600" />
+            </div>
+
+            <div>
+              <h2 className="font-semibold text-slate-900">
+                {contract.contractNumber}
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                {date(contract.startDate)} –{' '}
+                {date(contract.endDate)}
+              </p>
+            </div>
+          </div>
+
+          {/* Contract Status */}
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              data.expired
+                ? 'bg-red-100 text-red-700'
+                : 'bg-emerald-50 text-emerald-700'
+            }`}
+          >
+            {data.expired ? 'Expired' : contract.status}
+          </span>
+        </div>
+
+        {/* Salary Summary */}
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {/* Monthly Gross */}
+          <div className="rounded-xl bg-slate-50 p-4">
+            <Wallet className="h-5 w-5 text-primary-600" />
+
+            <p className="mt-2 text-sm text-slate-500">
+              Monthly gross
+            </p>
+
+            <b className="text-lg">
+              {money(contract.pay?.gross)}
+            </b>
+          </div>
+
+          {/* Monthly Net */}
+          <div className="rounded-xl bg-slate-50 p-4">
+            <Wallet className="h-5 w-5 text-emerald-600" />
+
+            <p className="mt-2 text-sm text-slate-500">
+              Monthly net
+            </p>
+
+            <b className="text-lg text-emerald-700">
+              {money(contract.pay?.net)}
+            </b>
+          </div>
+
+          {/* Overtime Rate */}
+          <div className="rounded-xl bg-slate-50 p-4">
+            <Clock3 className="h-5 w-5 text-amber-600" />
+
+            <p className="mt-2 text-sm text-slate-500">
+              Overtime rate
+            </p>
+
+            <b className="text-lg">
+              {money(contract.overtimeRate)} / hour
+            </b>
+          </div>
+        </div>
+      </section>
+
+      {/* Allowances & Deductions */}
+      <section className="grid gap-6 md:grid-cols-2">
+        {/* Allowances */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <h2 className="font-semibold">
+            Allowances
+          </h2>
+
+          <div className="mt-3 divide-y">
+            {contract.pay?.allowances?.map((item, index) => (
+              <p
+                key={index}
+                className="flex justify-between py-3 text-sm"
+              >
+                <span>{item.name}</span>
+
+                <b className="text-emerald-700">
+                  {money(item.amount)}
+                </b>
+              </p>
+            ))}
+
+            {!contract.pay?.allowances?.length && (
+              <p className="py-3 text-sm text-slate-500">
+                No allowances recorded.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Deductions */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <h2 className="font-semibold">
+            Deductions
+          </h2>
+
+          <div className="mt-3 divide-y">
+            {contract.pay?.deductions?.map((item, index) => (
+              <p
+                key={index}
+                className="flex justify-between py-3 text-sm"
+              >
+                <span>{item.name}</span>
+
+                <b className="text-red-600">
+                  {money(item.amount)}
+                </b>
+              </p>
+            ))}
+
+            {!contract.pay?.deductions?.length && (
+              <p className="py-3 text-sm text-slate-500">
+                No deductions recorded.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

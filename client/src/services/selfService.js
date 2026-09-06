@@ -5,5 +5,9 @@ export const checkOut = async () => (await api.post('/attendance/check-out')).da
 export const getMyPayslips = async () => (await api.get('/payslips/mine')).data
 export const getMyTimeOff = async () => (await api.get('/time-off/mine')).data
 export const requestTimeOff = async (payload) => (await api.post('/time-off/mine', payload)).data
+export const cancelMyTimeOff = async (id) => (await api.put(`/time-off/mine/${id}/cancel`)).data
+export const listTimeOff = async () => (await api.get('/time-off')).data
+export const approveTimeOff = async (id) => (await api.put(`/time-off/${id}/approve`)).data
+export const rejectTimeOff = async (id, reason = '') => (await api.put(`/time-off/${id}/reject`, { reason })).data
 export const getDashboard = async () => (await api.get('/dashboard')).data
 export const getMyContract = async () => (await api.get('/my-contract')).data

@@ -55,7 +55,7 @@ async function currentProjection() {
     const specialDeductions = adjustments.filter((item) => item.type === 'deduction').reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const workedDays = attendance.filter((item) => item.workedHours > 0).length;
     const workedHours = attendance.reduce((sum, item) => sum + Number(item.workedHours || 0), 0);
-    const overtimeFor = (item) => Math.max(Number(item.overtimeHours || 0), Number((Number(item.workedHours || 0) - dailyLimit(contract.userId.scheduleId, item.date, contract)).toFixed(2)), 0);
+    const overtimeFor = (item) => Math.max(0, Number((Number(item.workedHours || 0) - dailyLimit(contract.userId.scheduleId, item.date, contract)).toFixed(2)));
     const overtimeHours = attendance.reduce((sum, item) => sum + overtimeFor(item), 0);
     const cashOvertime = attendance.filter((item) => item.overtimeChoice === 'cash').reduce((sum, item) => sum + overtimeFor(item), 0);
     const dailyGross = pay.gross / 22; const dailyNet = pay.net / 22;

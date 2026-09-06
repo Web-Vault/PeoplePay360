@@ -1,12 +1,204 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { AlertTriangle, Wallet } from 'lucide-react'
-import { getCurrentPayroll, listPayruns } from '../../services/payrollService'
-import { formatDate } from '../../utils/helpers'
-const money = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value || 0)
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { AlertTriangle, Wallet } from 'lucide-react';
+
+import {
+  getCurrentPayroll,
+  listPayruns,
+} from '../../services/payrollService';
+
+import { formatDate } from '../../utils/helpers';
+
+const money = (value) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(value || 0);
 
 export default function PayrollList() {
-  const [history, setHistory] = useState([]); const [current, setCurrent] = useState(null); const [error, setError] = useState('')
-  useEffect(() => { Promise.all([listPayruns(), getCurrentPayroll()]).then(([runs, projection]) => { setHistory(runs.data.payruns || []); setCurrent(projection.data) }).catch((e) => setError(e.response?.data?.message || 'Could not load payroll')) }, [])
-  return <div className="space-y-6"><div><h1 className="text-2xl font-bold text-slate-900">Payroll</h1><p className="mt-1 text-sm text-slate-500">Current earnings from contracts, attendance, overtime, and approved leave.</p></div>{error && <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}{current && <section className="rounded-2xl border border-primary-200 bg-primary-50/40 p-5 shadow-sm"><div className="flex justify-between"><div><h2 className="flex items-center gap-2 font-semibold"><Wallet className="h-5 w-5 text-primary-600" />Current month payroll</h2><p className="mt-1 text-sm text-slate-500">{formatDate(current.periodStart)} – {formatDate(current.periodEnd)}</p></div><p className="font-semibold text-primary-700">{current.totals.employees} employees</p></div><div className="mt-5 grid grid-cols-3 gap-4"><div><p className="text-xs text-slate-500">Earned gross</p><b>{money(current.totals.gross)}</b></div><div><p className="text-xs text-slate-500">Earned net</p><b className="text-emerald-700">{money(current.totals.net)}</b></div><div><p className="text-xs text-slate-500">Overtime</p><b>{current.totals.overtimeHours.toFixed(2)} hrs</b></div></div><div className="mt-5 overflow-x-auto rounded-xl border border-slate-200 bg-white"><table className="min-w-full divide-y divide-slate-100"><thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500"><tr><th className="px-4 py-3">Employee</th><th className="px-4 py-3">Days / hours</th><th className="px-4 py-3">Overtime</th><th className="px-4 py-3">Earned gross</th><th className="px-4 py-3">Earned net</th></tr></thead><tbody className="divide-y divide-slate-100">{current.employees.map((row) => <tr key={row.contractId} className="hover:bg-primary-50/50"><td className="px-4 py-3"><Link to={`/payroll/employee/${row.userId}`} className="block"><p className="font-semibold text-primary-700">{row.name}</p><p className="text-xs text-slate-500">{row.employeeCode} · View salary details</p></Link></td><td className="px-4 py-3 text-sm">{row.workedDays} days · {row.workedHours} hrs</td><td className="px-4 py-3 text-sm text-amber-700">{row.overtimeHours} hrs</td><td className="px-4 py-3 text-sm">{money(row.earnedGross)}</td><td className="px-4 py-3 font-semibold text-emerald-700">{money(row.earnedNet)}</td></tr>)}</tbody></table></div></section>}<section><h2 className="mb-3 font-semibold text-slate-900">Completed payroll history</h2><div className="grid gap-3">{history.map((run) => <Link key={run._id} to={`/payroll/${run._id}`} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-primary-200"><div className="flex justify-between"><div><b>{run.name}</b><p className="text-sm text-slate-500">{formatDate(run.periodStart)} – {formatDate(run.periodEnd)}</p></div><div className="text-right"><p className="font-semibold text-emerald-700">{money(run.totalNet)}</p><p className="flex items-center gap-1 text-xs text-slate-500"><AlertTriangle className="h-3 w-3" />{run.auditScore || 0}% audit</p></div></div></Link>)}</div></section></div>
+  const [history, setHistory] = useState([]);
+  const [current, setCurrent] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    Promise.all([listPayruns(), getCurrentPayroll()])
+      .then(([runs, projection]) => {
+        setHistory(runs.data.payruns || []);
+        setCurrent(projection.data);
+      })
+      .catch((e) =>
+        setError(
+          e.response?.data?.message || 'Could not load payroll'
+        )
+      );
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">
+          Payroll
+        </h1>
+
+        <p className="mt-1 text-sm text-slate-500">
+          Current earnings from contracts, attendance, overtime, and
+          approved leave.
+        </p>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+
+      {/* Current Payroll */}
+      {current && (
+        <section className="rounded-2xl border border-primary-200 bg-primary-50/40 p-5 shadow-sm">
+          <div className="flex justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 font-semibold">
+                <Wallet className="h-5 w-5 text-primary-600" />
+                Current month payroll
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                {formatDate(current.periodStart)} –{' '}
+                {formatDate(current.periodEnd)}
+              </p>
+            </div>
+
+            <p className="font-semibold text-primary-700">
+              {current.totals.employees} employees
+            </p>
+          </div>
+
+          {/* Payroll Summary */}
+          <div className="mt-5 grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs text-slate-500">
+                Earned gross
+              </p>
+              <b>{money(current.totals.gross)}</b>
+            </div>
+
+            <div>
+              <p className="text-xs text-slate-500">
+                Earned net
+              </p>
+              <b className="text-emerald-700">
+                {money(current.totals.net)}
+              </b>
+            </div>
+
+            <div>
+              <p className="text-xs text-slate-500">
+                Overtime
+              </p>
+              <b>
+                {current.totals.overtimeHours.toFixed(2)} hrs
+              </b>
+            </div>
+          </div>
+
+          {/* Employee Payroll Table */}
+          <div className="mt-5 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table className="min-w-full divide-y divide-slate-100">
+              <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">Employee</th>
+                  <th className="px-4 py-3">Days / hours</th>
+                  <th className="px-4 py-3">Overtime</th>
+                  <th className="px-4 py-3">Earned gross</th>
+                  <th className="px-4 py-3">Earned net</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-100">
+                {current.employees.map((row) => (
+                  <tr
+                    key={row.contractId}
+                    className="hover:bg-primary-50/50"
+                  >
+                    <td className="px-4 py-3">
+                      <Link
+                        to={`/payroll/employee/${row.userId}`}
+                        className="block"
+                      >
+                        <p className="font-semibold text-primary-700">
+                          {row.name}
+                        </p>
+
+                        <p className="text-xs text-slate-500">
+                          {row.employeeCode} · View salary details
+                        </p>
+                      </Link>
+                    </td>
+
+                    <td className="px-4 py-3 text-sm">
+                      {row.workedDays} days · {row.workedHours} hrs
+                    </td>
+
+                    <td className="px-4 py-3 text-sm text-amber-700">
+                      {row.overtimeHours} hrs
+                    </td>
+
+                    <td className="px-4 py-3 text-sm">
+                      {money(row.earnedGross)}
+                    </td>
+
+                    <td className="px-4 py-3 font-semibold text-emerald-700">
+                      {money(row.earnedNet)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* Payroll History */}
+      <section>
+        <h2 className="mb-3 font-semibold text-slate-900">
+          Completed payroll history
+        </h2>
+
+        <div className="grid gap-3">
+          {history.map((run) => (
+            <Link
+              key={run._id}
+              to={`/payroll/${run._id}`}
+              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-primary-200"
+            >
+              <div className="flex justify-between">
+                <div>
+                  <b>{run.name}</b>
+
+                  <p className="text-sm text-slate-500">
+                    {formatDate(run.periodStart)} –{' '}
+                    {formatDate(run.periodEnd)}
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <p className="font-semibold text-emerald-700">
+                    {money(run.totalNet)}
+                  </p>
+
+                  <p className="flex items-center gap-1 text-xs text-slate-500">
+                    <AlertTriangle className="h-3 w-3" />
+                    {run.auditScore || 0}% audit
+                  </p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
 }

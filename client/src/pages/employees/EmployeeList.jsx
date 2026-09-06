@@ -1,15 +1,215 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Edit3, Plus, Search, Users } from 'lucide-react'
-import Button from '../../components/common/Button'
-import Input from '../../components/common/Input'
-import { listEmployees } from '../../services/employeeService'
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Edit3, Plus, Search, Users } from 'lucide-react';
 
-const AccessBadge = ({ active }) => <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{active ? 'Account active' : 'Account inactive'}</span>
+import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
+import { listEmployees } from '../../services/employeeService';
+
+const AccessBadge = ({ active }) => (
+  <span
+    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+      active
+        ? 'bg-emerald-50 text-emerald-700'
+        : 'bg-slate-100 text-slate-600'
+    }`}
+  >
+    {active ? 'Account active' : 'Account inactive'}
+  </span>
+);
 
 export default function EmployeeList() {
-  const [employees, setEmployees] = useState([]); const [loading, setLoading] = useState(true); const [search, setSearch] = useState(''); const [status, setStatus] = useState(''); const [error, setError] = useState(''); const navigate = useNavigate()
-  const load = async () => { setLoading(true); try { const result = await listEmployees({ search, status, limit: 100 }); setEmployees(result?.data?.employees || []) } catch (error) { setError(error.response?.data?.message || 'Could not load employee records') } finally { setLoading(false) } }
-  useEffect(() => { const timer = setTimeout(load, 250); return () => clearTimeout(timer) }, [search, status])
-  return <div className="space-y-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="text-2xl font-bold text-slate-900">Employees</h1><p className="mt-1 text-sm text-slate-500">Employee profiles stored in the central users directory.</p></div><Button onClick={() => navigate('/employees/new')}><Plus className="h-4 w-4" />Add employee</Button></div><div className="rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="grid gap-3 border-b border-slate-100 p-5 sm:grid-cols-3"><Input className="sm:col-span-2" icon={Search} placeholder="Search name, employee ID, email, or position…" value={search} onChange={(e) => setSearch(e.target.value)} /><select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm"><option value="">All employment statuses</option><option value="active">Active</option><option value="inactive">Inactive</option><option value="terminated">Terminated</option></select></div>{error && <p className="m-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}<div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-100"><thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500"><tr><th className="px-6 py-3">Employee</th><th className="px-6 py-3">ID</th><th className="px-6 py-3">Department</th><th className="px-6 py-3">Position</th><th className="px-6 py-3">Account access</th><th className="px-6 py-3 text-right">Actions</th></tr></thead><tbody className="divide-y divide-slate-100">{loading ? <tr><td colSpan="6" className="px-6 py-16 text-center text-sm text-slate-500">Loading employee records…</td></tr> : employees.length ? employees.map((employee) => <tr key={employee._id} className="hover:bg-slate-50"><td className="px-6 py-4"><Link to={`/employees/${employee._id}`} className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">{employee.firstName?.[0]}{employee.lastName?.[0]}</span><span><span className="block font-semibold text-slate-900">{employee.firstName} {employee.lastName}</span><span className="block text-xs text-slate-500">{employee.email}</span></span></Link></td><td className="px-6 py-4 text-sm font-medium text-slate-600">{employee.employeeCode}</td><td className="px-6 py-4 text-sm text-slate-600">{employee.departmentId?.name || '—'}</td><td className="px-6 py-4 text-sm text-slate-600">{employee.position || '—'}</td><td className="px-6 py-4"><AccessBadge active={employee.isActive} /></td><td className="px-6 py-4 text-right"><Link to={`/employees/${employee._id}/edit`} className="inline-flex rounded-lg p-2 text-slate-500 hover:bg-primary-50 hover:text-primary-700"><Edit3 className="h-4 w-4" /></Link></td></tr>) : <tr><td colSpan="6" className="px-6 py-16 text-center"><Users className="mx-auto mb-3 h-8 w-8 text-slate-300" /><p className="text-sm text-slate-500">No employee records found.</p></td></tr>}</tbody></table></div></div></div>
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('');
+  const [error, setError] = useState('');
+
+  const navigate = useNavigate();
+
+  const load = async () => {
+    setLoading(true);
+
+    try {
+      const result = await listEmployees({
+        search,
+        status,
+        limit: 100,
+      });
+
+      setEmployees(result?.data?.employees || []);
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+          'Could not load employee records'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(load, 250);
+
+    return () => clearTimeout(timer);
+  }, [search, status]);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Employees
+          </h1>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Employee profiles stored in the central users directory.
+          </p>
+        </div>
+
+        <Button onClick={() => navigate('/employees/new')}>
+          <Plus className="h-4 w-4" />
+          Add employee
+        </Button>
+      </div>
+
+      {/* Employee Table */}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {/* Filters */}
+        <div className="grid gap-3 border-b border-slate-100 p-5 sm:grid-cols-3">
+          <Input
+            className="sm:col-span-2"
+            icon={Search}
+            placeholder="Search name, employee ID, email, or position…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm"
+          >
+            <option value="">All employment statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="terminated">Terminated</option>
+          </select>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <p className="m-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-100">
+            <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+              <tr>
+                <th className="px-6 py-3">Employee</th>
+                <th className="px-6 py-3">ID</th>
+                <th className="px-6 py-3">Department</th>
+                <th className="px-6 py-3">Position</th>
+                <th className="px-6 py-3">Account access</th>
+                <th className="px-6 py-3 text-right">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-16 text-center text-sm text-slate-500"
+                  >
+                    Loading employee records…
+                  </td>
+                </tr>
+              ) : employees.length ? (
+                employees.map((employee) => (
+                  <tr
+                    key={employee._id}
+                    className="hover:bg-slate-50"
+                  >
+                    {/* Employee */}
+                    <td className="px-6 py-4">
+                      <Link
+                        to={`/employees/${employee._id}`}
+                        className="flex items-center gap-3"
+                      >
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">
+                          {employee.firstName?.[0]}
+                          {employee.lastName?.[0]}
+                        </span>
+
+                        <span>
+                          <span className="block font-semibold text-slate-900">
+                            {employee.firstName}{' '}
+                            {employee.lastName}
+                          </span>
+
+                          <span className="block text-xs text-slate-500">
+                            {employee.email}
+                          </span>
+                        </span>
+                      </Link>
+                    </td>
+
+                    {/* Employee ID */}
+                    <td className="px-6 py-4 text-sm font-medium text-slate-600">
+                      {employee.employeeCode}
+                    </td>
+
+                    {/* Department */}
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      {employee.departmentId?.name || '—'}
+                    </td>
+
+                    {/* Position */}
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      {employee.position || '—'}
+                    </td>
+
+                    {/* Account Access */}
+                    <td className="px-6 py-4">
+                      <AccessBadge active={employee.isActive} />
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-6 py-4 text-right">
+                      <Link
+                        to={`/employees/${employee._id}/edit`}
+                        className="inline-flex rounded-lg p-2 text-slate-500 hover:bg-primary-50 hover:text-primary-700"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-16 text-center"
+                  >
+                    <Users className="mx-auto mb-3 h-8 w-8 text-slate-300" />
+
+                    <p className="text-sm text-slate-500">
+                      No employee records found.
+                    </p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 }

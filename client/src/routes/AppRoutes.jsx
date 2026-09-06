@@ -18,6 +18,7 @@ import MyPayslips from '../pages/employee/MyPayslips'
 import MyTimeOff from '../pages/employee/MyTimeOff'
 import MyContract from '../pages/employee/MyContract'
 import ExplainMySalary from '../pages/employee/ExplainMySalary'
+import TimeOffManagement from '../pages/timeoff/TimeOffManagement'
 import AttendanceList from '../pages/attendance/AttendanceList'
 import PayrollList from '../pages/payroll/PayrollList'
 import PayrollDetail from '../pages/payroll/PayrollDetail'
@@ -50,7 +51,7 @@ export default function AppRoutes() {
             <Route path="/contracts" element={<ContractList />} />
             <Route path="/contracts/:id" element={<ContractDetail />} />
             <Route path="/attendance" element={<AttendanceList />} />
-            <Route path="/time-off" element={<PlaceholderPage title="Time Off" />} />
+            <Route path="/time-off" element={<TimeOffManagement />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={ADMIN_PAYROLL} />}>

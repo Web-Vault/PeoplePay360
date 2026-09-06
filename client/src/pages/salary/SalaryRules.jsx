@@ -1,20 +1,474 @@
-import { useEffect, useState } from 'react'
-import { BarChart3, CheckCircle2, Edit3, Plus, Trash2, X } from 'lucide-react'
-import Button from '../../components/common/Button'
-import { createSalaryRule, deleteSalaryRule, listSalaryRules, updateSalaryRule } from '../../services/salaryService'
 
-const emptyRule = { name: '', code: '', category: 'allowance', sequence: 10, calculationType: 'percentage', value: 0, basedOn: 'BASIC', formula: '', isActive: true }
-const label = (text) => <label className="block text-sm font-medium text-slate-700">{text}</label>
+import { useEffect, useState } from 'react';
+
+import {
+  BarChart3,
+  CheckCircle2,
+  Edit3,
+  Plus,
+  Trash2,
+  X,
+} from 'lucide-react';
+
+import Button from '../../components/common/Button';
+
+import {
+  createSalaryRule,
+  deleteSalaryRule,
+  listSalaryRules,
+  updateSalaryRule,
+} from '../../services/salaryService';
+
+const emptyRule = {
+  name: '',
+  code: '',
+  category: 'allowance',
+  sequence: 10,
+  calculationType: 'percentage',
+  value: 0,
+  basedOn: 'BASIC',
+  formula: '',
+  isActive: true,
+};
+
+const label = (text) => (
+  <label className="block text-sm font-medium text-slate-700">
+    {text}
+  </label>
+);
+
 function RuleForm({ item, onClose, onSaved }) {
-  const [form, setForm] = useState(item || emptyRule); const [saving, setSaving] = useState(false); const [error, setError] = useState('')
-  const set = (key, value) => setForm((old) => ({ ...old, [key]: value }))
-  const submit = async (event) => { event.preventDefault(); setSaving(true); setError(''); try { const payload = { ...form, code: form.code.toUpperCase(), sequence: Number(form.sequence), value: Number(form.value), basedOn: form.calculationType === 'percentage' ? form.basedOn : undefined, formula: form.calculationType === 'formula' ? form.formula : undefined }; item ? await updateSalaryRule(item._id, payload) : await createSalaryRule(payload); onSaved() } catch (e) { setError(e.response?.data?.message || 'Could not save the salary rule') } finally { setSaving(false) } }
-  return <div className="fixed inset-0 z-50 flex items-center justify-center p-4"><button aria-label="Close" onClick={onClose} className="absolute inset-0 bg-slate-900/50" /><form onSubmit={submit} className="relative w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl"><div className="mb-5 flex items-center justify-between"><div><h2 className="text-lg font-bold">{item ? 'Edit salary rule' : 'New salary rule'}</h2><p className="text-sm text-slate-500">Define how this salary component is calculated.</p></div><button type="button" onClick={onClose}><X className="text-slate-400" /></button></div>{error && <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}<div className="grid gap-4 sm:grid-cols-2"><div>{label('Rule name')}<input required value={form.name} onChange={(e) => set('name', e.target.value)} className="mt-1 w-full rounded-lg border p-2.5" placeholder="House Rent Allowance" /></div><div>{label('Code')}<input required value={form.code} onChange={(e) => set('code', e.target.value.toUpperCase())} className="mt-1 w-full rounded-lg border p-2.5" placeholder="HRA" /></div><div>{label('Category')}<select value={form.category} onChange={(e) => set('category', e.target.value)} className="mt-1 w-full rounded-lg border p-2.5">{['basic', 'allowance', 'gross', 'deduction', 'net'].map((x) => <option key={x} value={x}>{x}</option>)}</select></div><div>{label('Calculation')}<select value={form.calculationType} onChange={(e) => set('calculationType', e.target.value)} className="mt-1 w-full rounded-lg border p-2.5">{['fixed', 'percentage', 'formula', 'contract_basic'].map((x) => <option key={x} value={x}>{x.replace('_', ' ')}</option>)}</select></div><div>{label('Sequence')}<input required min="0" type="number" value={form.sequence} onChange={(e) => set('sequence', e.target.value)} className="mt-1 w-full rounded-lg border p-2.5" /></div>{form.calculationType !== 'formula' && form.calculationType !== 'contract_basic' && <div>{label(form.calculationType === 'percentage' ? 'Rate (%)' : 'Monthly amount (₹)')}<input required min="0" step="0.01" type="number" value={form.value} onChange={(e) => set('value', e.target.value)} className="mt-1 w-full rounded-lg border p-2.5" /></div>}{form.calculationType === 'percentage' && <div>{label('Based on rule code')}<input required value={form.basedOn} onChange={(e) => set('basedOn', e.target.value.toUpperCase())} className="mt-1 w-full rounded-lg border p-2.5" placeholder="BASIC" /></div>}{form.calculationType === 'formula' && <div className="sm:col-span-2">{label('Formula')}<input required value={form.formula} onChange={(e) => set('formula', e.target.value.toUpperCase())} className="mt-1 w-full rounded-lg border p-2.5" placeholder="GROSS - PF_EE - PT - TDS" /><p className="mt-1 text-xs text-slate-500">Use existing rule codes, numbers, +, -, *, / and parentheses.</p></div>}<label className="flex items-center gap-2 text-sm font-medium text-slate-700"><input checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)} type="checkbox" /> Active rule</label></div><div className="mt-6 flex justify-end gap-3"><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" loading={saving}>Save rule</Button></div></form></div>
+  const [form, setForm] = useState(item || emptyRule);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const set = (key, value) => {
+    setForm((old) => ({
+      ...old,
+      [key]: value,
+    }));
+  };
+
+  const submit = async (event) => {
+    event.preventDefault();
+
+    setSaving(true);
+    setError('');
+
+    try {
+      const payload = {
+        ...form,
+        code: form.code.toUpperCase(),
+        sequence: Number(form.sequence),
+        value: Number(form.value),
+        basedOn:
+          form.calculationType === 'percentage'
+            ? form.basedOn
+            : undefined,
+        formula:
+          form.calculationType === 'formula'
+            ? form.formula
+            : undefined,
+      };
+
+      if (item) {
+        await updateSalaryRule(item._id, payload);
+      } else {
+        await createSalaryRule(payload);
+      }
+
+      onSaved();
+    } catch (e) {
+      setError(
+        e.response?.data?.message ||
+          'Could not save the salary rule'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-900/50"
+      />
+
+      <form
+        onSubmit={submit}
+        className="relative w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl"
+      >
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold">
+              {item ? 'Edit salary rule' : 'New salary rule'}
+            </h2>
+
+            <p className="text-sm text-slate-500">
+              Define how this salary component is calculated.
+            </p>
+          </div>
+
+          <button type="button" onClick={onClose}>
+            <X className="text-slate-400" />
+          </button>
+        </div>
+
+        {error && (
+          <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            {label('Rule name')}
+
+            <input
+              required
+              value={form.name}
+              onChange={(e) => set('name', e.target.value)}
+              className="mt-1 w-full rounded-lg border p-2.5"
+              placeholder="House Rent Allowance"
+            />
+          </div>
+
+          <div>
+            {label('Code')}
+
+            <input
+              required
+              value={form.code}
+              onChange={(e) =>
+                set('code', e.target.value.toUpperCase())
+              }
+              className="mt-1 w-full rounded-lg border p-2.5"
+              placeholder="HRA"
+            />
+          </div>
+
+          <div>
+            {label('Category')}
+
+            <select
+              value={form.category}
+              onChange={(e) => set('category', e.target.value)}
+              className="mt-1 w-full rounded-lg border p-2.5"
+            >
+              {[
+                'basic',
+                'allowance',
+                'gross',
+                'deduction',
+                'net',
+              ].map((x) => (
+                <option key={x} value={x}>
+                  {x}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            {label('Calculation')}
+
+            <select
+              value={form.calculationType}
+              onChange={(e) =>
+                set('calculationType', e.target.value)
+              }
+              className="mt-1 w-full rounded-lg border p-2.5"
+            >
+              {[
+                'fixed',
+                'percentage',
+                'formula',
+                'contract_basic',
+              ].map((x) => (
+                <option key={x} value={x}>
+                  {x.replace('_', ' ')}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            {label('Sequence')}
+
+            <input
+              required
+              min="0"
+              type="number"
+              value={form.sequence}
+              onChange={(e) => set('sequence', e.target.value)}
+              className="mt-1 w-full rounded-lg border p-2.5"
+            />
+          </div>
+
+          {form.calculationType !== 'formula' &&
+            form.calculationType !== 'contract_basic' && (
+              <div>
+                {label(
+                  form.calculationType === 'percentage'
+                    ? 'Rate (%)'
+                    : 'Monthly amount (₹)'
+                )}
+
+                <input
+                  required
+                  min="0"
+                  step="0.01"
+                  type="number"
+                  value={form.value}
+                  onChange={(e) => set('value', e.target.value)}
+                  className="mt-1 w-full rounded-lg border p-2.5"
+                />
+              </div>
+            )}
+
+          {form.calculationType === 'percentage' && (
+            <div>
+              {label('Based on rule code')}
+
+              <input
+                required
+                value={form.basedOn}
+                onChange={(e) =>
+                  set('basedOn', e.target.value.toUpperCase())
+                }
+                className="mt-1 w-full rounded-lg border p-2.5"
+                placeholder="BASIC"
+              />
+            </div>
+          )}
+
+          {form.calculationType === 'formula' && (
+            <div className="sm:col-span-2">
+              {label('Formula')}
+
+              <input
+                required
+                value={form.formula}
+                onChange={(e) =>
+                  set('formula', e.target.value.toUpperCase())
+                }
+                className="mt-1 w-full rounded-lg border p-2.5"
+                placeholder="GROSS - PF_EE - PT - TDS"
+              />
+
+              <p className="mt-1 text-xs text-slate-500">
+                Use existing rule codes, numbers, +, -, *, / and
+                parentheses.
+              </p>
+            </div>
+          )}
+
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input
+              checked={form.isActive}
+              onChange={(e) => set('isActive', e.target.checked)}
+              type="checkbox"
+            />
+
+            Active rule
+          </label>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+
+          <Button type="submit" loading={saving}>
+            Save rule
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
 }
+
 export default function SalaryRules() {
-  const [items, setItems] = useState([]); const [editing, setEditing] = useState(null); const [error, setError] = useState(''); const [loading, setLoading] = useState(true)
-  const load = async () => { setLoading(true); try { setItems((await listSalaryRules()).data.rules || []) } catch (e) { setError(e.response?.data?.message || 'Could not load salary rules') } finally { setLoading(false) } }
-  useEffect(() => { load() }, [])
-  const remove = async (rule) => { if (!window.confirm(`Delete ${rule.name}?`)) return; try { await deleteSalaryRule(rule._id); load() } catch (e) { setError(e.response?.data?.message || 'Could not delete salary rule') } }
-  return <div className="space-y-6"><div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-2xl font-bold text-slate-900">Salary rules</h1><p className="mt-1 text-sm text-slate-500">Reusable components for allowances, deductions, gross and net salary.</p></div><Button onClick={() => setEditing({})}><Plus className="h-4 w-4" />Add rule</Button></div>{error && <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}<section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="flex items-center gap-2 border-b p-5"><BarChart3 className="h-5 w-5 text-primary-600" /><b>{items.length} rules from the database</b></div><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-100"><thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500"><tr><th className="px-5 py-3">Rule</th><th className="px-5 py-3">Category</th><th className="px-5 py-3">Calculation</th><th className="px-5 py-3">Value / formula</th><th className="px-5 py-3">Status</th><th className="px-5 py-3" /></tr></thead><tbody className="divide-y divide-slate-100">{items.map((rule) => <tr key={rule._id}><td className="px-5 py-4"><b>{rule.name}</b><p className="font-mono text-xs text-slate-500">{rule.code} · #{rule.sequence}</p></td><td className="px-5 py-4 capitalize text-sm">{rule.category}</td><td className="px-5 py-4 capitalize text-sm">{rule.calculationType.replace('_', ' ')}</td><td className="px-5 py-4 text-sm">{rule.calculationType === 'formula' ? rule.formula : rule.calculationType === 'percentage' ? `${rule.value}% of ${rule.basedOn}` : rule.calculationType === 'fixed' ? `₹${Number(rule.value).toLocaleString('en-IN')}` : 'Contract basic salary'}</td><td className="px-5 py-4">{rule.isActive ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs text-emerald-700"><CheckCircle2 className="h-3 w-3" />Active</span> : <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">Inactive</span>}</td><td className="px-5 py-4"><div className="flex justify-end gap-2"><button onClick={() => setEditing(rule)} className="rounded-lg p-2 text-primary-600 hover:bg-primary-50"><Edit3 className="h-4 w-4" /></button><button onClick={() => remove(rule)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button></div></td></tr>)}{!loading && !items.length && <tr><td colSpan="6" className="p-10 text-center text-sm text-slate-500">No salary rules yet.</td></tr>}</tbody></table></div></section>{editing && <RuleForm item={editing._id ? editing : null} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load() }} />}</div>
+  const [items, setItems] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+
+    try {
+      setItems((await listSalaryRules()).data.rules || []);
+    } catch (e) {
+      setError(
+        e.response?.data?.message ||
+          'Could not load salary rules'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const remove = async (rule) => {
+    if (!window.confirm(`Delete ${rule.name}?`)) {
+      return;
+    }
+
+    try {
+      await deleteSalaryRule(rule._id);
+      load();
+    } catch (e) {
+      setError(
+        e.response?.data?.message ||
+          'Could not delete salary rule'
+      );
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Salary rules
+          </h1>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Reusable components for allowances, deductions, gross
+            and net salary.
+          </p>
+        </div>
+
+        <Button onClick={() => setEditing({})}>
+          <Plus className="h-4 w-4" />
+          Add rule
+        </Button>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+
+      {/* Salary Rules Table */}
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center gap-2 border-b p-5">
+          <BarChart3 className="h-5 w-5 text-primary-600" />
+          <b>{items.length} rules from the database</b>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-100">
+            <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+              <tr>
+                <th className="px-5 py-3">Rule</th>
+                <th className="px-5 py-3">Category</th>
+                <th className="px-5 py-3">Calculation</th>
+                <th className="px-5 py-3">Value / formula</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3" />
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-slate-100">
+              {items.map((rule) => (
+                <tr key={rule._id}>
+                  <td className="px-5 py-4">
+                    <b>{rule.name}</b>
+
+                    <p className="font-mono text-xs text-slate-500">
+                      {rule.code} · #{rule.sequence}
+                    </p>
+                  </td>
+
+                  <td className="px-5 py-4 capitalize text-sm">
+                    {rule.category}
+                  </td>
+
+                  <td className="px-5 py-4 capitalize text-sm">
+                    {rule.calculationType.replace('_', ' ')}
+                  </td>
+
+                  <td className="px-5 py-4 text-sm">
+                    {rule.calculationType === 'formula'
+                      ? rule.formula
+                      : rule.calculationType === 'percentage'
+                        ? `${rule.value}% of ${rule.basedOn}`
+                        : rule.calculationType === 'fixed'
+                          ? `₹${Number(
+                              rule.value
+                            ).toLocaleString('en-IN')}`
+                          : 'Contract basic salary'}
+                  </td>
+
+                  <td className="px-5 py-4">
+                    {rule.isActive ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs text-emerald-700">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Active
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+                        Inactive
+                      </span>
+                    )}
+                  </td>
+
+                  <td className="px-5 py-4">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => setEditing(rule)}
+                        className="rounded-lg p-2 text-primary-600 hover:bg-primary-50"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </button>
+
+                      <button
+                        onClick={() => remove(rule)}
+                        className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+              {!loading && !items.length && (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="p-10 text-center text-sm text-slate-500"
+                  >
+                    No salary rules yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Rule Form Modal */}
+      {editing && (
+        <RuleForm
+          item={editing._id ? editing : null}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            load();
+          }}
+        />
+      )}
+    </div>
+  );
 }
